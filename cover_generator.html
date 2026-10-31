@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; width: 100vw; height: 100vh; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const W = parseInt(urlParams.get('w') || '1920');
+  const H = parseInt(urlParams.get('h') || '1080');
+  const canvas = document.getElementById('c');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  function drawCover() {
+    // 1. Sky & Forest Atmosphere
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+    skyGrad.addColorStop(0, '#1a090c');
+    skyGrad.addColorStop(0.35, '#2e1115');
+    skyGrad.addColorStop(0.7, '#44191d');
+    skyGrad.addColorStop(1, '#5a2224');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Diagonal God Rays
+    ctx.save();
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = '#ffccaa';
+    for (let i = 0; i < 7; i++) {
+      ctx.beginPath();
+      const rx = (W * 0.1) + i * (W * 0.14);
+      ctx.moveTo(rx, -100);
+      ctx.lineTo(rx + W * 0.15, -100);
+      ctx.lineTo(rx + W * 0.45, H + 100);
+      ctx.lineTo(rx + W * 0.25, H + 100);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 2. Parallax Silhouette Tree Trunks
+    function drawTrees(count, color, alpha, minW, maxW) {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
+      const step = W / count;
+      for (let i = 0; i < count; i++) {
+        const tx = i * step + ((i * 47) % (step * 0.6));
+        const tw = minW + ((i * 13) % (maxW - minW));
+        // Trunk
+        ctx.fillRect(tx, 0, tw, H * 0.88);
+        // Branches
+        for (let b = 0; b < 3; b++) {
+          const by = H * 0.2 + b * (H * 0.22);
+          const dir = (i + b) % 2 === 0 ? 1 : -1;
+          ctx.beginPath();
+          ctx.moveTo(tx + tw / 2, by);
+          ctx.lineTo(tx + tw / 2 + dir * tw * 1.8, by - H * 0.05);
+          ctx.lineTo(tx + tw / 2 + dir * tw * 2.2, by - H * 0.08);
+          ctx.lineWidth = tw * 0.18;
+          ctx.strokeStyle = color;
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+
+    // Deep background trees
+    drawTrees(12, '#381619', 0.65, W * 0.025, W * 0.045);
+    // Midground trees
+    drawTrees(8, '#260d10', 0.85, W * 0.04, W * 0.07);
+
+    // 3. Ground Layer
+    const groundY = H * 0.84;
+    const groundGrad = ctx.createLinearGradient(0, groundY, 0, H);
+    groundGrad.addColorStop(0, '#2d1419');
+    groundGrad.addColorStop(0.3, '#1d0b0f');
+    groundGrad.addColorStop(1, '#0e0406');
+    ctx.fillStyle = groundGrad;
+    ctx.fillRect(0, groundY, W, H - groundY);
+
+    // Foliage / Grass Tufts on ground
+    ctx.save();
+    ctx.fillStyle = '#6b2d2f';
+    for (let x = 0; x < W; x += 18) {
+      const gh = 24 + ((x * 7) % 28);
+      ctx.beginPath();
+      ctx.moveTo(x, groundY + 4);
+      ctx.lineTo(x + 8, groundY - gh);
+      ctx.lineTo(x + 16, groundY + 4);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 4. Hero Character Silhouette / Artwork
+    const charScale = Math.min(W, H) / 540;
+    const charX = W * (W > H ? 0.38 : 0.45);
+    const charY = groundY - 140 * charScale;
+
+    ctx.save();
+    ctx.translate(charX, charY);
+    ctx.scale(charScale * 1.6, charScale * 1.6);
+
+    // Swoosh trail
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(-110, 45);
+    ctx.quadraticCurveTo(-40, 20, 0, 0);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.restore();
+
+    // Body (Native boy spirit runner)
+    // Head
+    ctx.fillStyle = '#f3a886';
+    ctx.beginPath();
+    ctx.arc(10, -22, 22, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Black Hair & Headband
+    ctx.fillStyle = '#1c1719';
+    ctx.beginPath();
+    ctx.arc(10, -26, 23, Math.PI * 0.9, Math.PI * 2.1);
+    ctx.fill();
+    ctx.fillRect(-10, -32, 38, 14);
+
+    // Red Headband
+    ctx.fillStyle = '#d32f2f';
+    ctx.fillRect(-12, -26, 42, 6);
+    // Yellow feather
+    ctx.fillStyle = '#ffd54f';
+    ctx.beginPath();
+    ctx.moveTo(-10, -26);
+    ctx.lineTo(-24, -40);
+    ctx.lineTo(-14, -22);
+    ctx.fill();
+
+    // Face features (cute stylized)
+    ctx.fillStyle = '#261214';
+    ctx.fillRect(18, -23, 4, 3); // Eye
+    ctx.fillStyle = '#e57373';
+    ctx.fillRect(12, -18, 6, 2); // Red face paint stripe
+
+    // Torso & Skirt
+    ctx.fillStyle = '#f3a886';
+    ctx.fillRect(-4, -2, 22, 28);
+    // Red cloth / skirt
+    ctx.fillStyle = '#d32f2f';
+    ctx.fillRect(-6, 20, 26, 12);
+    ctx.fillStyle = '#ffd54f';
+    ctx.fillRect(-6, 18, 26, 3);
+
+    // Limbs in dynamic leap
+    ctx.fillStyle = '#f3a886';
+    // Back leg
+    ctx.save();
+    ctx.translate(-2, 28);
+    ctx.rotate(-0.8);
+    ctx.fillRect(-4, 0, 8, 22);
+    ctx.restore();
+    // Front leg
+    ctx.save();
+    ctx.translate(14, 28);
+    ctx.rotate(0.6);
+    ctx.fillRect(-4, 0, 8, 24);
+    ctx.restore();
+
+    // Arms
+    ctx.save();
+    ctx.translate(14, 2);
+    ctx.rotate(-0.5);
+    ctx.fillRect(0, -3, 18, 7);
+    ctx.restore();
+
+    ctx.restore(); // Character restore
+
+    // 5. Radiant Golden Star Coins
+    function drawGoldenCoin(cx, cy, r) {
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      // Outer glow
+      const glow = ctx.createRadialGradient(0, 0, r * 0.5, 0, 0, r * 2.2);
+      glow.addColorStop(0, 'rgba(255, 235, 59, 0.7)');
+      glow.addColorStop(1, 'rgba(255, 193, 7, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Coin base
+      const coinGrad = ctx.createLinearGradient(-r, -r, r, r);
+      coinGrad.addColorStop(0, '#fff59d');
+      coinGrad.addColorStop(0.3, '#fbc02d');
+      coinGrad.addColorStop(0.7, '#f57f17');
+      coinGrad.addColorStop(1, '#ff6f00');
+      ctx.fillStyle = coinGrad;
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff9c4';
+      ctx.lineWidth = r * 0.12;
+      ctx.stroke();
+
+      // 5-Point Star inside coin
+      ctx.fillStyle = '#fff9c4';
+      ctx.beginPath();
+      const points = 5;
+      const outerR = r * 0.6;
+      const innerR = r * 0.28;
+      for (let p = 0; p < points * 2; p++) {
+        const rad = (p * Math.PI) / points - Math.PI / 2;
+        const curR = p % 2 === 0 ? outerR : innerR;
+        const px = Math.cos(rad) * curR;
+        const py = Math.sin(rad) * curR;
+        if (p === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    drawGoldenCoin(charX + 180 * charScale, charY - 20 * charScale, 36 * charScale);
+    drawGoldenCoin(charX + 320 * charScale, charY - 90 * charScale, 28 * charScale);
+    drawGoldenCoin(charX + 440 * charScale, charY - 40 * charScale, 24 * charScale);
+
+    // 6. Glowing Amber Runestone Obstacle
+    ctx.save();
+    const stoneX = charX + 160 * charScale;
+    const stoneY = groundY;
+    ctx.translate(stoneX, stoneY);
+    ctx.scale(charScale * 1.2, charScale * 1.2);
+    
+    // Boulder base
+    ctx.fillStyle = '#422a27';
+    ctx.beginPath();
+    ctx.moveTo(-28, 0);
+    ctx.lineTo(-32, -38);
+    ctx.lineTo(-12, -65);
+    ctx.lineTo(24, -58);
+    ctx.lineTo(36, -24);
+    ctx.lineTo(28, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Glowing Amber Crystal Facets
+    ctx.fillStyle = '#ffa726';
+    ctx.shadowColor = '#ff6f00';
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.moveTo(-10, -62);
+    ctx.lineTo(0, -90);
+    ctx.lineTo(16, -60);
+    ctx.lineTo(4, -45);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // 7. TITLE BANNER / LOGO
+    ctx.save();
+    const titleY = W > H ? H * 0.22 : H * 0.16;
+    ctx.textAlign = 'center';
+
+    // Subtitle Badge
+    ctx.font = 'bold ' + Math.round(24 * charScale) + 'px "Segoe UI", sans-serif';
+    ctx.letterSpacing = '6px';
+    ctx.fillStyle = '#ffb300';
+    ctx.shadowColor = '#ff6f00';
+    ctx.shadowBlur = 14;
+    ctx.fillText('AN ENDLESS ADVENTURE', W / 2, titleY - 55 * charScale);
+
+    // Main Title: FOREST DASH
+    ctx.font = '900 ' + Math.round(76 * charScale) + 'px "Segoe UI", Impact, sans-serif';
+    ctx.letterSpacing = '4px';
+    
+    // Title Shadow
+    ctx.fillStyle = '#110305';
+    ctx.fillText('FOREST DASH', W / 2 + 5, titleY + 5);
+
+    // Gradient Fill for Title
+    const titleGrad = ctx.createLinearGradient(0, titleY - 60 * charScale, 0, titleY + 10 * charScale);
+    titleGrad.addColorStop(0, '#fff9c4');
+    titleGrad.addColorStop(0.35, '#ffca28');
+    titleGrad.addColorStop(0.7, '#ff8f00');
+    titleGrad.addColorStop(1, '#e65100');
+    ctx.fillStyle = titleGrad;
+    ctx.shadowColor = '#ff6f00';
+    ctx.shadowBlur = 24;
+    ctx.fillText('FOREST DASH', W / 2, titleY);
+
+    // Second Title: SPIRIT RUNNER
+    ctx.font = '700 ' + Math.round(34 * charScale) + 'px "Segoe UI", sans-serif';
+    ctx.letterSpacing = '10px';
+    const subGrad = ctx.createLinearGradient(0, titleY + 15 * charScale, 0, titleY + 50 * charScale);
+    subGrad.addColorStop(0, '#ffffff');
+    subGrad.addColorStop(1, '#ffe082');
+    ctx.fillStyle = subGrad;
+    ctx.shadowColor = '#00e5ff';
+    ctx.shadowBlur = 12;
+    ctx.fillText('SPIRIT RUNNER', W / 2, titleY + 44 * charScale);
+
+    ctx.restore();
+
+    window.__COVER_RENDERED__ = true;
+  }
+
+  window.addEventListener('DOMContentLoaded', drawCover);
+</script>
+</body>
+</html>
+

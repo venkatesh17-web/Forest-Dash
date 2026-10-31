@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="FOREST DASH: SPIRIT RUNNER - An endless 2D forest adventure with platforming, golden coins, and spirit power-ups.">
+    <meta name="theme-color" content="#12090d">
+    <title>Forest Dash: Spirit Runner</title>
+    <link rel="icon" type="image/svg+xml" href="assets/images/spirit_icon.svg">
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Main HTML5 Canvas -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- IN-GAME HUD (Faithfully Styled to Match Reference Image) -->
+        <div id="hud" class="hidden">
+            <!-- Top-Left Run Stats (Coin Counter, Score with Avatar, Best Score) -->
+            <div class="hud-top-left">
+                <!-- Coins row -->
+                <div class="hud-stat-row">
+                    <span class="hud-coin-icon">🪙</span>
+                    <span id="hud-coins" class="hud-stat-number gold">0</span>
+                </div>
+                <!-- Distance / Score with Hero Avatar -->
+                <div class="hud-stat-row">
+                    <span class="hud-hero-avatar">🏃</span>
+                    <span id="hud-score" class="hud-stat-number gold">0</span>
+                </div>
+                <!-- Best score -->
+                <div class="hud-best-row">
+                    <span class="hud-best-label">Best</span>
+                    <span id="hud-best" class="hud-best-number">0</span>
+                </div>
+                <!-- Active Power-Up Badges -->
+                <div id="hud-powerups" class="powerup-tray"></div>
+            </div>
+
+            <!-- Bottom Left Corner: Pause Button (Stylized Stone/Wood with || Bars) -->
+            <button id="hud-btn-pause" class="hud-corner-btn hud-pause-btn" title="Pause Game" aria-label="Pause">
+                <span class="pause-bars"><span></span><span></span></span>
+            </button>
+
+            <!-- Bottom Right Corner: Metallic Glowing Power-Up Shield Button (from Reference Image) -->
+            <button id="hud-btn-powerup" class="hud-corner-btn hud-powerup-badge" title="Power-Up" aria-label="Power-Up">
+                <span class="powerup-inner-icon">🛡️</span>
+                <span id="hud-powerup-count" class="powerup-corner-count">1</span>
+            </button>
+        </div>
+
+        <!-- MOBILE TOUCH CONTROLS OVERLAY -->
+        <div id="mobile-controls" class="hidden">
+            <button id="mobile-btn-slide" class="mobile-touch-btn" aria-label="Slide">
+                <span class="mobile-icon">⬇️</span>
+                <span>Slide</span>
+            </button>
+            <button id="mobile-btn-jump" class="mobile-touch-btn" aria-label="Jump">
+                <span class="mobile-icon">⬆️</span>
+                <span>Jump</span>
+            </button>
+        </div>
+
+        <!-- READY STATE OVERLAY -->
+        <div id="ready-overlay" class="overlay-screen hidden">
+            <div class="ready-card">
+                <div class="ready-title">READY TO DASH!</div>
+                <div class="ready-sub">Tap Screen or Press <span class="key-badge">SPACE</span> to Run</div>
+            </div>
+        </div>
+
+        <!-- MAIN MENU -->
+        <div id="main-menu" class="overlay-screen">
+            <div class="modal-card">
+                <h1 class="game-title">FOREST DASH</h1>
+                <div class="game-subtitle">SPIRIT RUNNER</div>
+
+                <div class="menu-stats-row">
+                    <div class="stat-item">
+                        <span class="stat-label">High Score</span>
+                        <span id="menu-best-score" class="stat-val">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Coins</span>
+                        <span id="menu-total-coins" class="stat-val">0</span>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="btn-play" class="btn btn-primary">
+                        <span>▶ PLAY NOW</span>
+                    </button>
+                    <button id="btn-shop" class="btn btn-secondary">
+                        <span>👘 WARDROBE</span>
+                    </button>
+                </div>
+
+                <div class="sound-toggles">
+                    <button id="btn-toggle-sound" class="btn-toggle active">🔊 Sound: ON</button>
+                    <button id="btn-toggle-music" class="btn-toggle active">🎵 Music: ON</button>
+                </div>
+
+                <div class="controls-hint">
+                    Desktop: <span class="key-badge">SPACE</span> / <span class="key-badge">W</span> Jump &nbsp;|&nbsp;
+                    <span class="key-badge">S</span> Slide &nbsp;|&nbsp;
+                    <span class="key-badge">P</span> Pause<br>
+                    Mobile: Tap screen or use touch buttons.
+                </div>
+            </div>
+        </div>
+
+        <!-- PAUSE MENU -->
+        <div id="pause-menu" class="overlay-screen hidden">
+            <div class="modal-card">
+                <h2 class="game-title">PAUSED</h2>
+                <div class="btn-group" style="margin-top: 20px;">
+                    <button id="btn-resume" class="btn btn-primary">
+                        <span>▶ RESUME</span>
+                    </button>
+                    <button id="btn-pause-restart" class="btn btn-secondary">
+                        <span>🔄 RESTART</span>
+                    </button>
+                    <button id="btn-pause-main-menu" class="btn btn-secondary">
+                        <span>🏠 MAIN MENU</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- GAME OVER SCREEN -->
+        <div id="game-over-menu" class="overlay-screen hidden">
+            <div class="modal-card">
+                <div id="new-record-badge" class="new-record-tag hidden">🌟 NEW BEST RECORD! 🌟</div>
+                <h2 class="game-title" style="color: #ff5252;">FALLEN RUNNER</h2>
+
+                <div class="score-summary-grid">
+                    <div class="summary-box">
+                        <span class="stat-label">Run Score</span>
+                        <span id="game-over-score" class="stat-val">0</span>
+                    </div>
+                    <div class="summary-box">
+                        <span class="stat-label">Coins Collected</span>
+                        <span id="game-over-coins" class="stat-val">0</span>
+                    </div>
+                    <div class="summary-box full-width">
+                        <span class="stat-label">Personal Best</span>
+                        <span id="game-over-best" class="stat-val">0</span>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="btn-revive" class="btn btn-revive hidden">
+                        <span>💚 Spirit Revive (1 left)</span>
+                    </button>
+                    <button id="btn-restart" class="btn btn-primary">
+                        <span>🔄 PLAY AGAIN</span>
+                    </button>
+                    <button id="btn-gameover-main-menu" class="btn btn-secondary">
+                        <span>🏠 MAIN MENU</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHOP / WARDROBE MODAL -->
+        <div id="shop-menu" class="overlay-screen hidden">
+            <div class="modal-card shop-modal">
+                <h2 class="game-title">SPIRIT WARDROBE</h2>
+                <div class="shop-balance-row">
+                    <span>Your Vault:</span>
+                    <span id="shop-total-coins">0</span>
+                    <span>🪙</span>
+                </div>
+
+                <div id="shop-items-grid" class="shop-grid">
+                    <!-- Injected dynamically by ui.js -->
+                </div>
+
+                <button id="btn-shop-close" class="btn btn-secondary" style="width: 100%;">
+                    <span>BACK TO MENU</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS (Structured modularly for zero-CORS file:// local execution) -->
+    <script src="src/config.js"></script>
+    <script src="src/storage.js"></script>
+    <script src="src/audio.js"></script>
+    <script src="src/physics.js"></script>
+    <script src="src/particles.js"></script>
+    <script src="src/player.js"></script>
+    <script src="src/world.js"></script>
+    <script src="src/obstacles.js"></script>
+    <script src="src/coins.js"></script>
+    <script src="src/powerups.js"></script>
+    <script src="src/ui.js"></script>
+    <!-- CrazyGames v3 SDK (Enables gameplayStart/gameplayStop detection in CrazyGames QA Tool) -->
+    <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+    <script src="src/crazygames.js"></script>
+    <script src="src/game.js"></script>
+    <script src="src/main.js"></script>
+</body>
+</html>
+
